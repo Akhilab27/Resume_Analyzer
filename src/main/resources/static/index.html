@@ -1,27 +1,45 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Resume Analyzer</title>
+    <title>AI Resume Analyzer</title>
 
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
         body {
-            background: linear-gradient(to right, #4facfe, #00f2fe);
-            min-height: 100vh;
+            background: linear-gradient(to right, #141e30, #243b55);
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+
+        .main-title {
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
         }
 
         .card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            color: white;
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            transform: scale(1.02);
+        }
+
+        .badge {
+            font-size: 14px;
+        }
+
+        .result-card {
+            margin-top: 15px;
+            padding: 15px;
             border-radius: 15px;
-        }
-
-        .result-box {
-            margin-top: 20px;
-        }
-
-        .skill {
-            margin: 5px;
-            display: inline-block;
+            background: rgba(0,0,0,0.3);
         }
     </style>
 </head>
@@ -30,23 +48,27 @@
 
 <div class="container d-flex justify-content-center align-items-center vh-100">
 
-    <div class="card p-4 shadow-lg text-center" style="width: 400px;">
+    <div>
+        <h2 class="main-title">🚀 AI Resume Analyzer</h2>
 
-        <h3 class="mb-3">📄 Resume Analyzer</h3>
+        <div class="card p-4 shadow-lg text-center" style="width:400px">
 
-        <input type="file" id="file" class="form-control mb-3">
+            <input type="file" id="file" class="form-control mb-3">
 
-        <button class="btn btn-primary w-100" onclick="upload()">Analyze Resume</button>
+            <button onclick="upload()" class="btn btn-primary w-100">
+                Analyze Resume
+            </button>
 
-        <!-- Loading -->
-        <div id="loading" class="mt-3" style="display:none;">
-            <div class="spinner-border text-primary"></div>
-            <p>Analyzing...</p>
+            <!-- Loading -->
+            <div id="loading" style="display:none" class="mt-3">
+                <div class="spinner-border text-light"></div>
+                <p>Analyzing...</p>
+            </div>
+
+            <!-- Result -->
+            <div id="result"></div>
+
         </div>
-
-        <!-- Result -->
-        <div id="result" class="result-box"></div>
-
     </div>
 
 </div>
@@ -55,20 +77,18 @@
 
 function upload() {
 
-    let fileInput = document.getElementById("file");
-    let resultDiv = document.getElementById("result");
-    let loading = document.getElementById("loading");
+    let file = document.getElementById("file").files[0];
 
-    if (fileInput.files.length === 0) {
-        alert("Please upload a file");
+    if (!file) {
+        alert("Please upload a resume!");
         return;
     }
 
     let formData = new FormData();
-    formData.append("file", fileInput.files[0]);
+    formData.append("file", file);
 
-    loading.style.display = "block";
-    resultDiv.innerHTML = "";
+    document.getElementById("loading").style.display = "block";
+    document.getElementById("result").innerHTML = "";
 
     fetch("/api/resume/analyze", {
         method: "POST",
@@ -77,32 +97,38 @@ function upload() {
     .then(res => res.json())
     .then(data => {
 
-        loading.style.display = "none";
+        document.getElementById("loading").style.display = "none";
 
-        resultDiv.innerHTML = `
-            <h5 class="mt-3">Match Score</h5>
+        let missingSkillsHTML = data.missingSkills.length > 0
+            ? data.missingSkills.map(skill =>
+                `<span class="badge bg-danger m-1">${skill}</span>`
+              ).join("")
+            : "<span class='text-success'>No missing skills 🎉</span>";
 
-            <div class="progress">
-                <div class="progress-bar bg-success" 
-                     style="width:${data.percentage}%">
-                    ${data.percentage.toFixed(2)}%
+        document.getElementById("result").innerHTML = `
+            <div class="result-card text-start mt-3">
+
+                <h5>📊 Match Score</h5>
+
+                <div class="progress mb-2">
+                    <div class="progress-bar bg-success"
+                        style="width:${data.percentage}%">
+                        ${data.percentage.toFixed(2)}%
+                    </div>
                 </div>
-            </div>
 
-            <p class="mt-2">Matched Skills: ${data.matched}/${data.total}</p>
+                <p><b>Matched Skills:</b> ${data.matched} / ${data.total}</p>
 
-            <h6>Missing Skills:</h6>
+                <h6>❌ Missing Skills:</h6>
+                <div>${missingSkillsHTML}</div>
 
-            <div>
-                ${data.missingSkills.map(skill => 
-                    `<span class="badge bg-danger skill">${skill}</span>`
-                ).join("")}
             </div>
         `;
     })
     .catch(err => {
-        loading.style.display = "none";
-        resultDiv.innerHTML = "<p class='text-danger'>Error analyzing resume</p>";
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("result").innerHTML =
+            "<p class='text-danger'>Error analyzing resume</p>";
     });
 }
 
