@@ -1,18 +1,11 @@
 
 package com.project.resumeanalyzer.repository;
 
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import com.project.resumeanalyzer.Entity.ResumeEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
 
-@Repository
-public class ResumeRepository {
+public interface ResumeRepository extends JpaRepository<ResumeEntity, Long> {
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    public void save(String filename, double percent) {
-        String sql = "INSERT INTO resume_results(filename, match_percentage) VALUES (?, ?)";
-        jdbcTemplate.update(sql, filename, percent);
-    }
+    List<ResumeEntity> findByStatus(String status);
 }

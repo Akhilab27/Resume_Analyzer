@@ -1,19 +1,21 @@
 
+
 package com.project.resumeanalyzer.service;
 
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.text.PDFTextStripper;
-
-import java.io.File;
+import java.io.InputStream;
 
 public class ResumeParser {
-    public static String extractTextFromPDF(String filePath) {
-        try (PDDocument document = PDDocument.load(new File(filePath))) {
-            PDFTextStripper pdfStripper = new PDFTextStripper();
-            return pdfStripper.getText(document);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ""; // return empty text if error occurs
-        }
+
+    public static String extractTextFromPDF(InputStream inputStream) throws Exception {
+        org.apache.pdfbox.pdmodel.PDDocument document =
+                org.apache.pdfbox.pdmodel.PDDocument.load(inputStream);
+
+        org.apache.pdfbox.text.PDFTextStripper pdfStripper =
+                new org.apache.pdfbox.text.PDFTextStripper();
+
+        String text = pdfStripper.getText(document);
+        document.close();
+
+        return text;
     }
 }

@@ -1,41 +1,31 @@
+
+
 package com.project.resumeanalyzer.controller;
 
+import com.project.resumeanalyzer.Entity.ResumeEntity;
+import com.project.resumeanalyzer.service.ResumeService;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.project.resumeanalyzer.model.Result;
-import com.project.resumeanalyzer.service.ResumeService;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/resume")
-@CrossOrigin(origins = "*")
+@CrossOrigin("*")
 public class ResumeController {
 
     @Autowired
     private ResumeService service;
 
-    // ✅ API to analyze resume
     @PostMapping("/analyze")
-    public ResponseEntity<?> analyzeResume(@RequestParam("file") MultipartFile file) {
-        try {
-             System.out.println("API HIT SUCCESS"); 
-            // Call service layer
-            Result result = service.processResume(file);
+    public List<ResumeEntity> analyze(@RequestParam("files") MultipartFile[] files) throws Exception {
+        return service.processMultipleResumes(files);
+    }
 
-            // Return JSON response
-            return ResponseEntity.ok(result);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-
-            // Return error message
-            return ResponseEntity.badRequest().body("Error processing resume");
-        }
+    @GetMapping("/all")
+    public List<ResumeEntity> getAll() {
+        return service.getAllResumes();
     }
 }

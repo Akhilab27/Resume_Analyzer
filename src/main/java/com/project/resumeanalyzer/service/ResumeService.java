@@ -1,47 +1,64 @@
+
+
 package com.project.resumeanalyzer.service;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import com.project.resumeanalyzer.Entity.ResumeEntity;
+import com.project.resumeanalyzer.repository.ResumeRepository;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.project.resumeanalyzer.model.Result;
+import java.io.File;
+import java.util.*;
 
 @Service
 public class ResumeService {
 
-    public Result processResume(MultipartFile file) throws Exception {
+    @Autowired
+    private ResumeRepository repository;
 
-        // ✅ Convert uploaded file → temp file
-        File tempFile = File.createTempFile("resume", ".pdf");
-        file.transferTo(tempFile);
+    public List<ResumeEntity> processMultipleResumes(MultipartFile[] files) throws Exception {
 
-        // ✅ Extract text from PDF
-        String text = ResumeParser.extractTextFromPDF(tempFile.getAbsolutePath());
+        List<ResumeEntity> results = new ArrayList<>();
 
-        // ✅ Load keywords from resources
-        List<String> keywords = SkillMatcher.loadKeywords("data/job_keywords.txt");
+        for (MultipartFile file : files) {
 
-        // ✅ Count matched skills
-        int matched = SkillMatcher.countMatches(text, keywords);
+    // Directly use InputStream (FIXED)
+    String text = ResumeParser.extractTextFromPDF(file.getInputStream());
 
-        // ✅ Find missing skills
-        List<String> missing = new ArrayList<>();
-        for (String keyword : keywords) {
-            if (!text.toLowerCase().contains(keyword)) {
-                missing.add(keyword);
-            }
+    List<String> keywords = SkillMatcher.loadKeywords("src/main/resources/data/job_keywords.txt");
+
+    int matched = SkillMatcher.countMatches(text, keywords);
+
+    List<String> missing = new ArrayList<>();
+    for (String k : keywords) {
+        if (!text.toLowerCase().contains(k.toLowerCase())) {
+            missing.add(k);
         }
+    }
 
-        // ✅ Calculate percentage
-        double percentage = 0;
-        if (!keywords.isEmpty()) {
-            percentage = (matched * 100.0) / keywords.size();
-        }
+    double percent = (matched * 100.0) / keywords.size();
 
-        // ✅ Return result
-        return new Result(matched, keywords.size(), percentage, missing);
+    String status = percent >= 80 ? "SELECTED" : "REJECTED";
+
+    ResumeEntity entity = new ResumeEntity(
+            file.getOriginalFilename(),
+            matched,
+            keywords.size(),
+            percent,
+            status,
+            String.join(", ", missing)
+    );
+
+    repository.save(entity);
+    results.add(entity);
+}
+
+        return results;
+    }
+
+    public List<ResumeEntity> getAllResumes() {
+        return repository.findAll();
     }
 }
