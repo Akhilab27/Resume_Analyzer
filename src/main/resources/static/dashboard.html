@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Smart Resume Analyzer</title>
+    <script>
+if (!localStorage.getItem("user")) {
+    window.location.href = "login.html";
+}
+</script>
 
     <style>
         body {
@@ -10,27 +15,58 @@
             background: linear-gradient(135deg, #1f4037, #99f2c8);
             margin: 0;
             padding: 0;
-            color: #333;
         }
 
+        /* HEADER */
+        .header {
+            background: #1f4037;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h2 {
+            margin: 0;
+        }
+
+        .logout-btn {
+            background: #ff4d4d;
+            border: none;
+            padding: 8px 15px;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .logout-btn:hover {
+            background: #cc0000;
+        }
+
+        /* MAIN CONTAINER */
         .container {
             width: 85%;
-            margin: 40px auto;
+            margin: 30px auto;
+        }
+
+        /* CARD STYLE */
+        .card {
             background: white;
-            padding: 30px;
+            padding: 25px;
             border-radius: 12px;
-            box-shadow: 0px 8px 25px rgba(0,0,0,0.2);
+            box-shadow: 0px 6px 20px rgba(0,0,0,0.2);
+            margin-bottom: 25px;
         }
 
         h1 {
             text-align: center;
             color: #1f4037;
-            margin-bottom: 20px;
         }
 
+        /* UPLOAD */
         .upload-box {
             text-align: center;
-            margin-bottom: 20px;
         }
 
         input[type="file"] {
@@ -43,20 +79,28 @@
             color: white;
             border: none;
             padding: 12px 25px;
-            font-size: 16px;
+            font-size: 15px;
             border-radius: 6px;
             cursor: pointer;
-            transition: 0.3s;
         }
 
         button:hover {
             background: #14532d;
         }
 
+        /* LOADER */
+        .loader {
+            display: none;
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        /* TABLE */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 25px;
+            margin-top: 20px;
         }
 
         th, td {
@@ -84,9 +128,10 @@
             font-weight: bold;
         }
 
-        .loader {
-            display: none;
+        /* EMPTY STATE */
+        .empty {
             text-align: center;
+            color: gray;
             margin-top: 20px;
         }
 
@@ -94,35 +139,58 @@
 </head>
 <body>
 
+<!-- HEADER -->
+<div class="header">
+    <h2>📄 Smart Resume Analyzer</h2>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
 <div class="container">
 
-    <h1>📄 Smart Resume Analyzer</h1>
+    <!-- UPLOAD CARD -->
+    <div class="card">
+        <h1>Analyze Resumes</h1>
 
-    <div class="upload-box">
-        <input type="file" id="resumeInput" multiple>
-        <br>
-        <button onclick="uploadFiles()">Analyze Resumes</button>
+        <div class="upload-box">
+            <input type="file" id="resumeInput" multiple>
+            <br>
+            <button onclick="uploadFiles()">Analyze</button>
+        </div>
+
+        <div class="loader" id="loader">
+            ⏳ Processing resumes...
+        </div>
     </div>
 
-    <div class="loader" id="loader">
-        ⏳ Analyzing resumes... Please wait
-    </div>
+    <!-- RESULT CARD -->
+    <div class="card">
+        <h1>Results</h1>
 
-    <table id="resultTable">
-        <thead>
-            <tr>
-                <th>Resume Name</th>
-                <th>Match %</th>
-                <th>Status</th>
-                <th>Missing Skills</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+        <table id="resultTable">
+            <thead>
+                <tr>
+                    <th>Resume Name</th>
+                    <th>Match %</th>
+                    <th>Status</th>
+                    <th>Missing Skills</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <div class="empty" id="emptyMsg">
+            No resumes analyzed yet.
+        </div>
+    </div>
 
 </div>
 
 <script>
+
+function logout() {
+    // for now just redirect
+    window.location.href = "/login.html";
+}
 
 async function uploadFiles() {
 
@@ -134,8 +202,8 @@ async function uploadFiles() {
         return;
     }
 
-    const loader = document.getElementById("loader");
-    loader.style.display = "block";
+    document.getElementById("loader").style.display = "block";
+    document.getElementById("emptyMsg").style.display = "none";
 
     const formData = new FormData();
 
@@ -144,7 +212,7 @@ async function uploadFiles() {
     }
 
     try {
-        const response = await fetch("http://localhost:8080/api/resume/analyze", {
+        const response = await fetch("/api/resume/analyze", {
             method: "POST",
             body: formData
         });
@@ -175,7 +243,7 @@ async function uploadFiles() {
         console.error(error);
     }
 
-    loader.style.display = "none";
+    document.getElementById("loader").style.display = "none";
 }
 
 </script>

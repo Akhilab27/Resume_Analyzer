@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: linear-gradient(135deg, #1f4037, #99f2c8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 300px;
+            text-align: center;
+            box-shadow: 0px 5px 20px rgba(0,0,0,0.2);
+        }
+
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        button {
+            background: #1f4037;
+            color: white;
+            padding: 10px;
+            border: none;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        a {
+            color: #1f4037;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+    <h2>Register</h2>
+
+    <input type="text" id="regUsername" placeholder="Username">
+    <input type="password" id="regPassword" placeholder="Password">
+
+    <button onclick="register()">Register</button>
+
+    <p>Already have account? <a href="login.html">Login</a></p>
+</div>
+
+<script>
+function register() {
+    fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            username: document.getElementById("regUsername").value,
+            password: document.getElementById("regPassword").value
+        })
+    })
+    .then(res => res.text())
+    .then(data => {
+        alert(data);
+
+        if (data.includes("Success")) {
+            // auto login effect
+            localStorage.setItem("user", "loggedIn");
+            window.location.href = "dashboard.html";
+        }
+    });
+}
+</script>
+
+</body>
+</html>
