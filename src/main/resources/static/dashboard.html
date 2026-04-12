@@ -1,252 +1,316 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Smart Resume Analyzer</title>
     <script>
-if (!localStorage.getItem("user")) {
-    window.location.href = "login.html";
-}
-</script>
+      if (!localStorage.getItem("user")) {
+        window.location.href = "login.html";
+      }
+    </script>
 
     <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #1f4037, #99f2c8);
-            margin: 0;
-            padding: 0;
-        }
+      * { box-sizing: border-box; }
 
-        /* HEADER */
-        .header {
-            background: #1f4037;
-            color: white;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background: linear-gradient(135deg, #1f4037, #99f2c8);
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+      }
 
-        .header h2 {
-            margin: 0;
-        }
+      /* HEADER */
+      .header {
+        background: #1f4037;
+        color: white;
+        padding: 15px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .header h2 { margin: 0; }
+      .logout-btn {
+        background: #ff4d4d;
+        border: none;
+        padding: 8px 15px;
+        color: white;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .logout-btn:hover { background: #cc0000; }
 
-        .logout-btn {
-            background: #ff4d4d;
-            border: none;
-            padding: 8px 15px;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-        }
+      /* CONTAINER */
+      .container { width: 90%; margin: 30px auto; }
 
-        .logout-btn:hover {
-            background: #cc0000;
-        }
+      /* CARD */
+      .card {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0px 6px 20px rgba(0,0,0,0.2);
+        margin-bottom: 25px;
+      }
+      h1 { text-align: center; color: #1f4037; margin-top: 0; }
 
-        /* MAIN CONTAINER */
-        .container {
-            width: 85%;
-            margin: 30px auto;
-        }
+      /* UPLOAD */
+      .upload-box { text-align: center; }
+      input[type="file"] { padding: 10px; margin: 10px; }
 
-        /* CARD STYLE */
-        .card {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0px 6px 20px rgba(0,0,0,0.2);
-            margin-bottom: 25px;
-        }
+      /* BUTTONS */
+      button {
+        background: #1f4037;
+        color: white;
+        border: none;
+        padding: 10px 22px;
+        font-size: 14px;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      button:hover { background: #14532d; }
 
-        h1 {
-            text-align: center;
-            color: #1f4037;
-        }
+      /* LOADER */
+      .loader {
+        display: none;
+        text-align: center;
+        margin-top: 15px;
+        font-weight: bold;
+        color: #1f4037;
+      }
 
-        /* UPLOAD */
-        .upload-box {
-            text-align: center;
-        }
+      /* TABLE */
+      .table-wrapper { overflow-x: auto; }
+      table { width: 100%; border-collapse: collapse; margin-top: 20px; min-width: 750px; }
+      th, td { padding: 12px 10px; text-align: center; border-bottom: 1px solid #ddd; font-size: 14px; }
+      th { background: #1f4037; color: white; }
+      tr:hover { background: #f5f5f5; }
 
-        input[type="file"] {
-            padding: 10px;
-            margin: 10px;
-        }
+      .selected { color: green; font-weight: bold; }
+      .rejected { color: red; font-weight: bold; }
 
-        button {
-            background: #1f4037;
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            font-size: 15px;
-            border-radius: 6px;
-            cursor: pointer;
-        }
+      .empty { text-align: center; color: gray; margin-top: 20px; }
 
-        button:hover {
-            background: #14532d;
-        }
+      /* Email button variants */
+      .btn-email {
+        background: #1565c0;
+        color: white;
+        border: none;
+        padding: 7px 14px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+      .btn-email:hover { background: #0d47a1; }
+      .btn-email:disabled {
+        background: #90a4ae;
+        cursor: not-allowed;
+      }
+      .btn-email.sent {
+        background: #43a047;
+        cursor: default;
+      }
 
-        /* LOADER */
-        .loader {
-            display: none;
-            text-align: center;
-            margin-top: 15px;
-            font-weight: bold;
-        }
+      /* No email badge */
+      .no-email {
+        color: #888;
+        font-size: 12px;
+        font-style: italic;
+      }
 
-        /* TABLE */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: center;
-            border-bottom: 1px solid #ddd;
-        }
-
-        th {
-            background: #1f4037;
-            color: white;
-        }
-
-        tr:hover {
-            background: #f5f5f5;
-        }
-
-        .selected {
-            color: green;
-            font-weight: bold;
-        }
-
-        .rejected {
-            color: red;
-            font-weight: bold;
-        }
-
-        /* EMPTY STATE */
-        .empty {
-            text-align: center;
-            color: gray;
-            margin-top: 20px;
-        }
-
+      /* Toast notification */
+      #toast {
+        display: none;
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        background: #1f4037;
+        color: white;
+        padding: 14px 22px;
+        border-radius: 8px;
+        font-size: 14px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 9999;
+        max-width: 350px;
+      }
+      #toast.error { background: #c62828; }
     </style>
-</head>
-<body>
+  </head>
+  <body>
 
-<!-- HEADER -->
-<div class="header">
-    <h2>📄 Smart Resume Analyzer</h2>
-    <button class="logout-btn" onclick="logout()">Logout</button>
-</div>
-
-<div class="container">
-
-    <!-- UPLOAD CARD -->
-    <div class="card">
-        <h1>Analyze Resumes</h1>
-
-        <div class="upload-box">
-            <input type="file" id="resumeInput" multiple>
-            <br>
-            <button onclick="uploadFiles()">Analyze</button>
-        </div>
-
-        <div class="loader" id="loader">
-            ⏳ Processing resumes...
-        </div>
+    <!-- HEADER -->
+    <div class="header">
+      <h2>📄 Smart Resume Analyzer</h2>
+      <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
 
-    <!-- RESULT CARD -->
-    <div class="card">
+    <div class="container">
+
+      <!-- UPLOAD CARD -->
+      <div class="card">
+        <h1>Analyze Resumes</h1>
+        <div class="upload-box">
+          <input type="file" id="resumeInput" multiple accept=".pdf" />
+          <br />
+          <button onclick="uploadFiles()">⚡ Analyze Resumes</button>
+        </div>
+        <div class="loader" id="loader">⏳ Processing resumes, please wait...</div>
+      </div>
+
+      <!-- RESULT CARD -->
+      <div class="card">
         <h1>Results</h1>
 
-        <table id="resultTable">
+        <div class="table-wrapper">
+          <table id="resultTable">
             <thead>
-                <tr>
-                    <th>Resume Name</th>
-                    <th>Match %</th>
-                    <th>Status</th>
-                    <th>Missing Skills</th>
-                </tr>
+              <tr>
+                <th>#</th>
+                <th>Resume File</th>
+                <th>Match %</th>
+                <th>Status</th>
+                <th>Candidate Email</th>
+                <th>Missing Skills</th>
+                <th>Email Action</th>
+              </tr>
             </thead>
             <tbody></tbody>
-        </table>
-
-        <div class="empty" id="emptyMsg">
-            No resumes analyzed yet.
+          </table>
         </div>
+
+        <div class="empty" id="emptyMsg">No resumes analyzed yet.</div>
+      </div>
     </div>
 
-</div>
+    <!-- Toast -->
+    <div id="toast"></div>
 
-<script>
+    <script>
 
-function logout() {
-    // for now just redirect
-    window.location.href = "/login.html";
-}
+      // ── Logout ────────────────────────────────────────────────
+      function logout() {
+        localStorage.removeItem("user");
+        window.location.href = "/login.html";
+      }
 
-async function uploadFiles() {
+      // ── Toast helper ─────────────────────────────────────────
+      function showToast(msg, isError = false) {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.className = isError ? "error" : "";
+        t.style.display = "block";
+        setTimeout(() => { t.style.display = "none"; }, 4000);
+      }
 
-    const input = document.getElementById("resumeInput");
-    const files = input.files;
+      // ── Upload & Analyze ─────────────────────────────────────
+      async function uploadFiles() {
+        const input = document.getElementById("resumeInput");
+        const files = input.files;
 
-    if (files.length === 0) {
-        alert("Please upload at least one resume");
-        return;
-    }
+        if (files.length === 0) {
+          alert("Please upload at least one PDF resume.");
+          return;
+        }
 
-    document.getElementById("loader").style.display = "block";
-    document.getElementById("emptyMsg").style.display = "none";
+        document.getElementById("loader").style.display = "block";
+        document.getElementById("emptyMsg").style.display = "none";
 
-    const formData = new FormData();
+        const formData = new FormData();
+        for (let i = 0; i < files.length; i++) {
+          formData.append("files", files[i]);
+        }
 
-    for (let i = 0; i < files.length; i++) {
-        formData.append("files", files[i]);
-    }
-
-    try {
-        const response = await fetch("/api/resume/analyze", {
+        try {
+          const response = await fetch("/api/resume/analyze", {
             method: "POST",
-            body: formData
+            body: formData,
+          });
+
+          if (!response.ok) throw new Error("Server error: " + response.status);
+
+          const data = await response.json();
+          renderTable(data);
+          showToast("✅ " + data.length + " resume(s) analyzed successfully!");
+        } catch (error) {
+          showToast("❌ Error analyzing resumes: " + error.message, true);
+          console.error(error);
+        }
+
+        document.getElementById("loader").style.display = "none";
+      }
+
+      // ── Render table rows ────────────────────────────────────
+      function renderTable(data) {
+        const tbody = document.querySelector("#resultTable tbody");
+        tbody.innerHTML = "";
+        document.getElementById("emptyMsg").style.display = data.length === 0 ? "block" : "none";
+
+        data.forEach((resume, idx) => {
+          const statusClass = resume.status === "SELECTED" ? "selected" : "rejected";
+          const emailDisplay = resume.candidateEmail
+              ? `<span style="font-size:13px;">${resume.candidateEmail}</span>`
+              : `<span class="no-email">Not found</span>`;
+
+          let actionCell = "";
+          if (resume.status === "SELECTED") {
+            if (!resume.candidateEmail) {
+              actionCell = `<span class="no-email">No email in resume</span>`;
+            } else if (resume.emailSent) {
+              actionCell = `<button class="btn-email sent" disabled>✅ Email Sent</button>`;
+            } else {
+              actionCell = `<button class="btn-email" id="emailBtn-${resume.id}"
+                              onclick="sendEmail(${resume.id}, this)">
+                              📧 Send Selection Email
+                            </button>`;
+            }
+          } else {
+            actionCell = `<span style="color:#bbb; font-size:12px;">—</span>`;
+          }
+
+          const row = `
+            <tr>
+              <td>${idx + 1}</td>
+              <td style="text-align:left; word-break:break-all;">${resume.fileName}</td>
+              <td><strong>${resume.percentage.toFixed(2)}%</strong></td>
+              <td class="${statusClass}">${resume.status}</td>
+              <td>${emailDisplay}</td>
+              <td style="text-align:left; font-size:12px; color:#555;">${resume.missingSkills || "—"}</td>
+              <td>${actionCell}</td>
+            </tr>
+          `;
+          tbody.innerHTML += row;
         });
+      }
 
-        const data = await response.json();
+      // ── Send selection email ──────────────────────────────────
+      async function sendEmail(resumeId, btn) {
+        btn.disabled = true;
+        btn.textContent = "Sending...";
 
-        const tableBody = document.querySelector("#resultTable tbody");
-        tableBody.innerHTML = "";
+        try {
+          const response = await fetch(`/api/resume/send-email/${resumeId}`, {
+            method: "POST"
+          });
 
-        data.forEach(resume => {
+          const data = await response.json();
 
-            let statusClass = resume.status === "SELECTED" ? "selected" : "rejected";
+          if (response.ok) {
+            btn.textContent = "✅ Email Sent";
+            btn.classList.add("sent");
+            showToast("📧 Selection email sent to: " + data.email);
+          } else {
+            btn.disabled = false;
+            btn.textContent = "📧 Send Selection Email";
+            showToast("❌ " + (data.error || "Failed to send email"), true);
+          }
+        } catch (error) {
+          btn.disabled = false;
+          btn.textContent = "📧 Send Selection Email";
+          showToast("❌ Network error: " + error.message, true);
+        }
+      }
 
-            const row = `
-                <tr>
-                    <td>${resume.fileName}</td>
-                    <td>${resume.percentage.toFixed(2)}%</td>
-                    <td class="${statusClass}">${resume.status}</td>
-                    <td>${resume.missingSkills}</td>
-                </tr>
-            `;
-
-            tableBody.innerHTML += row;
-        });
-
-    } catch (error) {
-        alert("Error occurred while analyzing resumes");
-        console.error(error);
-    }
-
-    document.getElementById("loader").style.display = "none";
-}
-
-</script>
-
-</body>
+    </script>
+  </body>
 </html>
